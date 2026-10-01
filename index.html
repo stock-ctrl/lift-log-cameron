@@ -1273,7 +1273,7 @@ const DISPLAY_NAME     = "Cameron";     // what she sees
 const ATHLETE_KEY      = "Cameron";     // backend identity (Hannah Cort's girlfriend)
 const DAD_NAME         = DISPLAY_NAME;  // legacy alias, display only
 /* ========================================================================== */
-const APP_VERSION = "2026.09.28a";
+const APP_VERSION = "2026.09.30e";
 /* Owner profile — unset. Never populate this in a public repo with real
    personal details; it ships in the page source. */
 const PROFILE = null;
@@ -3014,32 +3014,62 @@ function renderHome(){
    Verified against all 103 exercise names in the real logs.
    Secondary muscles are credited at half a set. */
 const EX_RULES = [
-  [/tricep|skull ?crusher|pushdown|tate press|dip bar/i,       ["triceps"], []],
-  [/(db|dumbbell)\s+kickback/i,                                ["triceps"], []],
-  [/chest dip|weighted .*dip/i,                                 ["chest"], ["triceps"]],
-  [/(leg|hamstring|nordic|lying)\s*(hamstring)?\s*curl/i,      ["hamstrings"], []],
+  // Specific variants first; the general pattern for each family comes after.
+  [/tibialis/i,                                                 [], []],   // front of shin: no region on the map
+  [/dip bar|tricep dip|bench dip/i,                                       ["triceps"], ["chest","front_delts"]],
+  [/tricep|skull ?crusher|push[- ]?down|tate press|french press/i, ["triceps"], []],
+  [/jm press/i,                                                 ["triceps"], ["chest","front_delts"]],
+  [/(diamond|close[- ]?grip) push[- ]?up/i,                     ["triceps"], ["chest","front_delts"]],
+  [/(db|dumbbell)\s+kickback/i,                                 ["triceps"], []],
+  [/close-?grip bench/i,                                        ["triceps"], ["chest","front_delts"]],
+  [/chest dip|weighted .*dip|\bdips?\b/i,                       ["chest"], ["triceps","front_delts"]],
+  [/cuban press/i,                                              ["rear_delts"], ["side_delts","traps"]],
+  [/(leg|hamstring|nordic|lying)\s*(hamstring)?\s*curl/i,       ["hamstrings"], []],
   [/seated hamstring/i,                                         ["hamstrings"], []],
-  [/bicep|curl|zottman|spider|bayesian|concentration/i,         ["biceps"], ["forearms"]],
-  [/calf|tibialis|soleus/i,                                     ["calves"], []],
+  // Hannah's "Bicep Cable Pull": a neutral-grip overhead cable pull (per Stock),
+  // lats and biceps together. Must beat the general bicep rule.
+  [/bicep cable pull/i,                                         ["upper_back","biceps"], ["forearms","rear_delts"]],
+  [/reverse\b.*\bcurl|pronated curl/i,                          ["forearms"], ["biceps"]],
+  [/zottman|hammer curl|pinwheel/i,                             ["biceps","forearms"], []],
+  [/bicep|curl|spider|bayesian|concentration/i,                 ["biceps"], ["forearms"]],
+  [/calf|soleus/i,                                              ["calves"], []],
   [/abduct/i,                                                   ["abductors"], ["glutes"]],
   [/adduct/i,                                                   ["adductors"], []],
   [/hip thrust|glute\s*bridge|kickback|pull-?through/i,         ["glutes"], ["hamstrings"]],
   [/trap bar dead ?lift/i,          ["quads","glutes","hamstrings"], ["traps","lower_back","forearms"]],
   [/romanian|rdl|romain/i,                                      ["hamstrings","glutes"], ["lower_back"]],
-  [/rack pull/i,                                                ["lower_back","traps"], ["hamstrings","forearms"]],
+  [/rack pull/i,                    ["glutes","hamstrings","lower_back"], ["traps","upper_back","forearms"]],
   [/dead ?lift/i,                   ["hamstrings","glutes","lower_back"], ["traps","quads","forearms"]],
-  [/back extension|hyper ?ext|good morning/i,                   ["lower_back"], ["glutes","hamstrings"]],
+  [/back extension|hyper ?ext|good morning/i,                   ["lower_back","glutes"], ["hamstrings"]],
   [/leg extension/i,                                            ["quads"], []],
-  [/leg press/i,                                                ["quads","glutes"], ["hamstrings"]],
-  [/squat|wall sit/i,                                           ["quads","glutes"], ["hamstrings","adductors","abs"]],
+  [/leg press.*(high|wide)/i,                                   ["quads","glutes"], ["hamstrings","adductors"]],
+  [/leg press.*(low|narrow)/i,                                  ["quads"], ["glutes"]],
+  [/leg press/i,                                                ["quads"], ["glutes","hamstrings"]],
+  [/sissy/i,                                                    ["quads"], []],
+  [/spanish squat|wall sit/i,                                   ["quads"], ["glutes"]],
+  [/front squat|heel-?elevated|goblet squat/i,                  ["quads"], ["glutes","adductors","abs"]],
+  [/cyclist|belt squat/i,                                       ["quads"], ["glutes","adductors"]],
+  [/split squat/i,                  ["quads","glutes"], ["hamstrings","adductors","abductors","abs"]],
+  [/box jump/i,                                                 ["quads","glutes"], ["calves","hamstrings"]],
+  [/squat/i,                                                    ["quads","glutes"], ["hamstrings","adductors","abs"]],
+  [/lateral lunge/i,                                            ["quads","glutes","adductors"], ["hamstrings"]],
   [/lunge|step-?up/i,                                           ["quads","glutes"], ["hamstrings"]],
-  [/upright row/i,                                              ["traps"], ["front_delts"]],
+  [/upright row/i,                                              ["side_delts","traps"], ["rear_delts"]],
   [/shrug/i,                                                    ["traps"], []],
-  [/face pull|rear delt|pull-?apart|y-?raise/i,                 ["rear_delts"], ["traps","upper_back"]],
-  [/row|pulldown|pull-?up|chin-?up|pullover|straight-?arm/i,     ["upper_back"], ["biceps","rear_delts","forearms"]],
-  [/lateral raise/i,                                            ["front_delts"], ["traps"]],
-  [/overhead press|shoulder press|arnold|z-?press|military/i,   ["front_delts"], ["triceps","traps"]],
-  [/bench|chest|fly|flye|crossover|guillotine|press/i,          ["chest"], ["front_delts","triceps"]],
+  [/y-?raise/i,                                                 ["traps"], ["rear_delts","side_delts"]],
+  [/face pull|rear delt|pull-?apart/i,                          ["rear_delts"], ["traps","upper_back"]],
+  [/pullover/i,                                                 ["upper_back"], ["chest","triceps"]],
+  [/straight-?arm/i,                                            ["upper_back"], ["triceps","rear_delts"]],
+  [/^(?!.*(incline|chest-supported)).*(barbell row|pendlay)/i,  ["upper_back"], ["traps","rear_delts","biceps","lower_back"]],
+  [/row|pull[- ]?down|pull[- ]?up|chin[- ]?up/i,                           ["upper_back"], ["biceps","rear_delts","forearms"]],
+  [/lateral raise|side raise|lat raise/i,                       ["side_delts"], ["traps"]],
+  [/arnold/i,                                                   ["front_delts","side_delts"], ["rear_delts","triceps","traps"]],
+  [/z-?press/i,                                                 ["front_delts"], ["side_delts","triceps","traps","abs"]],
+  [/overhead press|\bohp\b|shoulder press|military/i,           ["front_delts"], ["side_delts","triceps","traps"]],
+  [/incline.*(60|steep)/i,                                      ["chest","front_delts"], ["triceps"]],
+  [/\bfly\b|flye|crossover/i,                                  ["chest"], ["front_delts"]],   // flies barely use triceps
+  [/push[- ]?up/i,                                              ["chest"], ["triceps","front_delts"]],
+  [/bench|chest|guillotine|press/i,                            ["chest"], ["front_delts","triceps"]],
   [/plank|crunch|sit-?up|ab wheel|leg raise|russian twist|oblique|woodchop/i, ["abs"], ["obliques"]],
   [/wrist|farmer/i,                                             ["forearms"], []],
 ];
@@ -3052,7 +3082,7 @@ function targetsFor(name){
 /* canonical muscle -> the polygon slugs it paints */
 const MUSCLE_POLYS = {
   chest:["chest"], abs:["abs"], obliques:["obliques"],
-  front_delts:["front_deltoids"], rear_delts:["back_deltoids"],
+  front_delts:["front_deltoids"], rear_delts:["back_deltoids"], side_delts:["front_deltoids"],
   biceps:["biceps"], triceps:["triceps"], forearms:["forearm"],
   traps:["trapezius"], upper_back:["upper_back"], lower_back:["lower_back"],
   quads:["quadriceps"], hamstrings:["hamstring"], glutes:["gluteal"],
@@ -3064,7 +3094,7 @@ Object.entries(MUSCLE_POLYS).forEach(([m,ps])=>ps.forEach(p=>POLY_MUSCLE[p]=m));
 
 const MUSCLE_ORDER = ["Chest","Core","Shoulders","Arms","Legs","Back"];
 const GROUP_MUSCLES = {
-  Chest:["chest"], Core:["abs","obliques"], Shoulders:["front_delts","rear_delts"],
+  Chest:["chest"], Core:["abs","obliques"], Shoulders:["front_delts","side_delts","rear_delts"],
   Arms:["biceps","triceps","forearms"], Back:["traps","upper_back","lower_back"],
   Legs:["quads","hamstrings","glutes","calves","adductors","abductors"],
 };
